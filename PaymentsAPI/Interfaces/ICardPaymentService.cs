@@ -8,6 +8,6 @@ namespace PaymentsAPI.Interfaces
 {
     public interface ICardPaymentService
     {
-        public Task<PaymentDetails> ProcessPayment(CardPayment payment);
+        public void ProcessPayment(CardPayment payment);
     }
 }

@@ -8,6 +8,7 @@ namespace PaymentsAPI.Interfaces
 {
     public interface IMessageSender
     {
-        void SendOrder(Order order);
+        public void SendOrder(Order order);
+        public void SendCardPayment(CardPayment cardPayment);
     }
 }

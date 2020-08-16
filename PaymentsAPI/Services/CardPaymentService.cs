@@ -10,22 +10,17 @@ namespace PaymentsAPI.Services
 {
     public class CardPaymentService : ICardPaymentService
     {
-        public async Task<PaymentDetails> ProcessPayment(CardPayment payment)
+        private readonly IMessageSender messageSender;
+
+        public CardPaymentService(IMessageSender messageSender)
         {
-            Thread.Sleep(1000);
-            return new PaymentDetails()
-            {
-                Amount = payment.Amount,
-                Name = payment.Name,
-                VerificationCode = GenerateNumber()
-            };
-        }
-        
-        private static int GenerateNumber()
-        {
-            return Rand.Next(100000, 999999);
+            this.messageSender = messageSender;
         }
 
-        private static Random Rand = new Random();
+        public void ProcessPayment(CardPayment payment)
+        {
+            messageSender.SendCardPayment(payment);
+            Console.WriteLine($"Payment Sent {payment.Name}, {payment.CardNumber}, ${payment.Amount}");
+        }
     }
 }

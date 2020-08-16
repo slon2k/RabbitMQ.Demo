@@ -21,7 +21,7 @@ namespace PaymentsAPI.Services
         public void MakePayment(Order order)
         {
             messageSender.SendOrder(order);
-            Console.WriteLine($"Purchase Order {order.OrderNumber} Sent {order.CompanyName} ${order.Amount}");
+            Console.WriteLine($"Purchase Order Sent, {order.CompanyName}, {order.OrderNumber}, ${order.Amount}");
         }
     }
 }

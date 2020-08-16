@@ -11,22 +11,22 @@ namespace PaymentsAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PaymentsController : ControllerBase
+    public class CardsController : ControllerBase
     {
         private readonly ICardPaymentService paymentService;
 
-        public PaymentsController(ICardPaymentService paymentService)
+        public CardsController(ICardPaymentService paymentService)
         {
             this.paymentService = paymentService;
         }
         
         [HttpPost]
-        public async Task<ActionResult> ProcessPayment([FromBody] CardPayment payment)
+        public ActionResult ProcessPayment([FromBody] CardPayment payment)
         {
             try
             {
-                var result = await paymentService.ProcessPayment(payment);
-                return Ok(result.VerificationCode);
+                paymentService.ProcessPayment(payment);
+                return Ok();
             }
             catch (Exception)
             {
