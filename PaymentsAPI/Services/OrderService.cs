@@ -11,22 +11,17 @@ namespace PaymentsAPI.Services
 {
     public class OrderService : IOrderService
     {
-        public async Task<Order> CreateOrder(OrderCreateDto order)
-        {
-            Thread.Sleep(1000);
-            return new Order()
-            {
-                Amount = order.Amount,
-                CompanyName = order.CompanyName,
-                OrderNumber = GenerateNumber()
-            };
-        }
+        private readonly IMessageSender messageSender;
 
-        private static string GenerateNumber()
+        public OrderService(IMessageSender messageSender)
         {
-            return $"PO-{Rand.Next(10000, 99999)}";
+            this.messageSender = messageSender;
         }
-
-        private static Random Rand = new Random();
+        
+        public void MakePayment(Order order)
+        {
+            messageSender.SendOrder(order);
+            Console.WriteLine($"Purchase Order {order.OrderNumber} Sent {order.CompanyName} ${order.Amount}");
+        }
     }
 }

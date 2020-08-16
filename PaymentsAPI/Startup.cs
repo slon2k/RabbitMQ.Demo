@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PaymentsAPI.Interfaces;
+using PaymentsAPI.Messaging;
 using PaymentsAPI.Services;
 
 namespace PaymentsAPI
@@ -27,8 +28,10 @@ namespace PaymentsAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMQ"));
             services.AddTransient<IOrderService, OrderService>();
-            services.AddTransient<ICardPaymentService, CardPaymentService>();            
+            services.AddTransient<ICardPaymentService, CardPaymentService>();
+            services.AddTransient<IMessageSender, MessageSender>();
             services.AddControllers();
 
         }

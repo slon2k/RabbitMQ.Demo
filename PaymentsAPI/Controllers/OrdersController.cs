@@ -22,12 +22,12 @@ namespace PaymentsAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Order>> Create([FromBody] OrderCreateDto dto)
+        public ActionResult MakePayment([FromBody] Order order)
         {
             try
             {
-                var result = await orderService.CreateOrder(dto);
-                return Ok(result.OrderNumber);
+                orderService.MakePayment(order);
+                return Ok();
             }
             catch (Exception)
             {

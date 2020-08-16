@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace PaymentsAPI.Interfaces
 {
-    public interface IOrderService
+    public interface IMessageSender
     {
-        public void MakePayment(Order order);
+        void SendOrder(Order order);
     }
 }

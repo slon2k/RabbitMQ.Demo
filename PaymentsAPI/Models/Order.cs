@@ -7,8 +7,8 @@ namespace PaymentsAPI.Models
 {
     public class Order
     {
-        public decimal Amount;
-        public string OrderNumber;
-        public string CompanyName;
+        public decimal Amount { get; set; }
+        public string OrderNumber { get; set; }
+        public string CompanyName { get; set; }
     }
 }
