@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Consumer.Interfaces
 {
-    public interface IOrderSevice
+    public interface ICardPaymentService
     {
-        Task MakePaymentAsync(Order order);
+        Task MakePayment(CardPayment cardPayment);
     }
 }

@@ -6,6 +6,7 @@ using Consumer.Data;
 using Consumer.Entities;
 using Consumer.Interfaces;
 using Consumer.Messaging;
+using Consumer.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -32,9 +33,11 @@ namespace Consumer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<DataContext>(o => o.UseInMemoryDatabase(databaseName: "PaymentsDb"));
-            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
             services.Configure<RabbitMqConfig>(Configuration.GetSection("RabbitMQ"));
             services.AddControllers();
+            services.AddTransient<IOrderService, OrderService>();
+            services.AddTransient<ICardPaymentService, CardPaymentService>();
             services.AddHostedService<CardPaymentReceiver>();
             services.AddHostedService<PurchaseOrderReceiver>();
         }

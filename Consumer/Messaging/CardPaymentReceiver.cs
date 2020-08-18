@@ -1,4 +1,6 @@
 ﻿using Consumer.Entities;
+using Consumer.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using PaymentsAPI.Messaging;
@@ -19,10 +21,11 @@ namespace Consumer.Messaging
         private readonly string userName;
         private readonly string password;
         private readonly ConnectionFactory factory;
+        private readonly IServiceScopeFactory serviceScopeFactory;
         private IConnection connection;
         private IModel channel;
-
-        public CardPaymentReceiver(IOptions<RabbitMqConfig> options)
+        
+        public CardPaymentReceiver(IOptions<RabbitMqConfig> options, IServiceScopeFactory serviceScopeFactory)
         {
             hostname = options.Value.Hostname;
             userName = options.Value.UserName;
@@ -31,12 +34,17 @@ namespace Consumer.Messaging
             connection = factory.CreateConnection();
             channel = connection.CreateModel();
             channel.QueueDeclare(queue: CardQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+            this.serviceScopeFactory = serviceScopeFactory;
         }
 
         private void HandleMessage(byte[] message)
         {
-            var payment = message.Deserialize<CardPayment>();
-            Console.WriteLine($"Payment received {payment.Name}, {payment.CardNumber}, ${payment.Amount}");
+            using(var scope = serviceScopeFactory.CreateScope())
+            {
+                var cardPaymentService = scope.ServiceProvider.GetRequiredService<ICardPaymentService>();
+                var payment = message.Deserialize<CardPayment>();
+                cardPaymentService.MakePayment(payment);
+            }
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Consumer.Services
 {
-    public class OrderService : IOrderSevice
+    public class OrderService : IOrderService
     {
         private readonly IRepository<Order> repository;
 

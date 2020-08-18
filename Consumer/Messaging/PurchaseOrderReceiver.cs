@@ -1,4 +1,6 @@
 ﻿using Consumer.Entities;
+using Consumer.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using PaymentsAPI.Messaging;
@@ -19,10 +21,12 @@ namespace Consumer.Messaging
         private readonly string userName;
         private readonly string password;
         private readonly ConnectionFactory factory;
+        private readonly IOrderService orderSevice;
+        private readonly IServiceScopeFactory serviceScopeFactory;
         private IConnection connection;
         private IModel channel;
 
-        public PurchaseOrderReceiver(IOptions<RabbitMqConfig> options)
+        public PurchaseOrderReceiver(IOptions<RabbitMqConfig> options, IServiceScopeFactory serviceScopeFactory)
         {
             hostname = options.Value.Hostname;
             userName = options.Value.UserName;
@@ -31,12 +35,17 @@ namespace Consumer.Messaging
             connection = factory.CreateConnection();
             channel = connection.CreateModel();
             channel.QueueDeclare(queue: OrderQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+            this.serviceScopeFactory = serviceScopeFactory;
         }
 
-        private void HandleMessage(byte[] message)
+        private async Task HandleMessageAsync(byte[] message)
         {
-            var payment = message.Deserialize<Order>();
-            Console.WriteLine($"Order received {payment.CompanyName}, {payment.OrderNumber}, ${payment.Amount}");
+            using(var scope = serviceScopeFactory.CreateScope()) 
+            {
+                var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
+                var payment = message.Deserialize<Order>();
+                await orderService.MakePaymentAsync(payment);
+            }
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,9 +54,9 @@ namespace Consumer.Messaging
 
             var consumer = new EventingBasicConsumer(channel);
 
-            consumer.Received += (ch, ea) =>
+            consumer.Received += async (ch, ea) =>
             {
-                HandleMessage(ea.Body.ToArray());
+                await HandleMessageAsync(ea.Body.ToArray());
                 channel.BasicAck(ea.DeliveryTag, false);
             };
 
