@@ -21,7 +21,6 @@ namespace Consumer.Messaging
         private readonly string userName;
         private readonly string password;
         private readonly ConnectionFactory factory;
-        private readonly IOrderService orderSevice;
         private readonly IServiceScopeFactory serviceScopeFactory;
         private IConnection connection;
         private IModel channel;
