@@ -17,7 +17,7 @@ namespace PaymentsAPI.Messaging
         private readonly string hostname;
         private readonly string userName;
         private readonly string password;
-        private ConnectionFactory factory;
+        private readonly ConnectionFactory factory;
         private IConnection connection;
         private IModel channel;
         private const string QueueName = "rpc_queue";
