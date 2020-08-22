@@ -8,12 +8,14 @@ using System.Collections.Generic;
 
 namespace PaymentsAPI.Messaging
 {
-    public class MessageSender : IMessageSender
+    public class MessageSender : IMessageSender, IDisposable
     {
         private readonly string hostname;
         private readonly string userName;
         private readonly string password;
         private readonly ConnectionFactory factory;
+        private IConnection connection;
+        private IModel channel;
         private const string ExchangeName = "TopicExchange";
         private const string OrderQueueName = "OrderQueue";
         private const string CardQueueName = "CardQueue";
@@ -28,25 +30,27 @@ namespace PaymentsAPI.Messaging
             userName = options.Value.UserName;
             password = options.Value.Password;
             factory = new ConnectionFactory() { HostName = hostname, UserName = userName, Password = password };
+            Connect();
+        }
+
+        private void Connect()
+        {
+            connection = factory.CreateConnection();
+            channel = connection.CreateModel();
+            channel.ExchangeDeclare(ExchangeName, "topic");
+
+            channel.QueueDeclare(queue: OrderQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+            channel.QueueDeclare(queue: CardQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+            channel.QueueDeclare(queue: AllQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
+
+            channel.QueueBind(OrderQueueName, ExchangeName, OrderRoutingKey);
+            channel.QueueBind(CardQueueName, ExchangeName, CardRoutingKey);
+            channel.QueueBind(AllQueueName, ExchangeName, AllRoutingKey);
         }
 
         private void SendMessage(byte[] message, string routingKey)
         {
-            using (var connection = factory.CreateConnection())
-            using (var channel = connection.CreateModel())
-            {
-                channel.ExchangeDeclare(ExchangeName, "topic");
-                
-                channel.QueueDeclare(queue: OrderQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-                channel.QueueDeclare(queue: CardQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-                channel.QueueDeclare(queue: AllQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
-
-                channel.QueueBind(OrderQueueName, ExchangeName, OrderRoutingKey);
-                channel.QueueBind(CardQueueName, ExchangeName, CardRoutingKey);
-                channel.QueueBind(AllQueueName, ExchangeName, AllRoutingKey);
-
-                channel.BasicPublish(ExchangeName, routingKey, null, message);
-            };
+            channel.BasicPublish(ExchangeName, routingKey, null, message);
         }
         
         public void SendOrder(Order order)
@@ -59,5 +63,10 @@ namespace PaymentsAPI.Messaging
             SendMessage(cardPayment.Serialize(), CardRoutingKey);
         }
 
+        public void Dispose()
+        {
+            channel.Close();
+            connection.Close();
+        }
     }
 }
