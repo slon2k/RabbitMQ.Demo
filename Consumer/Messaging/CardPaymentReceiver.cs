@@ -39,12 +39,10 @@ namespace Consumer.Messaging
 
         private void HandleMessage(byte[] message)
         {
-            using(var scope = serviceScopeFactory.CreateScope())
-            {
-                var cardPaymentService = scope.ServiceProvider.GetRequiredService<ICardPaymentService>();
-                var payment = message.Deserialize<CardPayment>();
-                cardPaymentService.MakePayment(payment);
-            }
+            using var scope = serviceScopeFactory.CreateScope();
+            var cardPaymentService = scope.ServiceProvider.GetRequiredService<ICardPaymentService>();
+            var payment = message.Deserialize<CardPayment>();
+            cardPaymentService.MakePayment(payment);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)

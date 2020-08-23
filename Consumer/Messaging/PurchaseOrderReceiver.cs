@@ -39,12 +39,10 @@ namespace Consumer.Messaging
 
         private async Task HandleMessageAsync(byte[] message)
         {
-            using(var scope = serviceScopeFactory.CreateScope()) 
-            {
-                var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
-                var payment = message.Deserialize<Order>();
-                await orderService.MakePaymentAsync(payment);
-            }
+            using var scope = serviceScopeFactory.CreateScope();
+            var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
+            var payment = message.Deserialize<Order>();
+            await orderService.MakePaymentAsync(payment);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
